@@ -95,14 +95,10 @@ void discover_server(struct sockaddr_in *server_addr_out)
         perror("setsockopt SO_RCVTIMEO failed");
     }
 
-    struct in_addr local_interface_ip;
-
     memset(&multicast_addr, 0, sizeof(multicast_addr));
     multicast_addr.sin_family = AF_INET;
     multicast_addr.sin_port = htons(DISCOVERY_UDP_PORT);
-    // inet_pton(AF_INET, MULTICAST_GROUP_DISCOVERY, &multicast_addr.sin_addr); // Używamy IPv4
-    inet_pton(AF_INET, "192.168.110.132", &local_interface_ip); // np. "192.168.1.100"
-    // group_discovery.imr_interface.s_addr = local_interface_ip.s_addr;
+    inet_pton(AF_INET, MULTICAST_GROUP_DISCOVERY, &multicast_addr.sin_addr); // Używamy IPv4
 
     printf("Sending discovery ping to %s:%d\n", MULTICAST_GROUP_DISCOVERY, DISCOVERY_UDP_PORT);
 
@@ -503,8 +499,16 @@ int main(int argc, char *argv[])
             printf("> "); // Ponowne wyświetlenie promptu
             fflush(stdout);
         }
-
+        // Brak FD_ISSET(sock_tcp, &read_fds) tutaj, ponieważ odpowiedzi od serwera (np. ACK, RESP)
+        // są odbierane synchronicznie zaraz po wysłaniu żądania.
+        // Asynchroniczne odbieranie jest tylko dla multicast.
     }
+
+    // Opuść grupę multicast (opcjonalne, ale dobra praktyka)
+    // struct ip_mreq group_chat;
+    // group_chat.imr_multiaddr.s_addr = inet_addr(MULTICAST_GROUP_CHAT);
+    // group_chat.imr_interface.s_addr = htonl(INADDR_ANY);
+    // setsockopt(chat_sock_udp, IPPROTO_IP, IP_DROP_MEMBERSHIP, &group_chat, sizeof(group_chat));
 
     // Czekaj na wątek czatu, aby się zakończył
     pthread_cancel(chat_thread); // Wątek jest zablokowany na recvfrom, trzeba go anulować
