@@ -1,10 +1,12 @@
 #include "utils.h"
-#include <stdarg.h> // Dla va_list, va_start, va_end
+#include <stdarg.h>
 
 void error_exit(const char *msg, int log_level)
 {
-    perror(msg);
+    // Log do syslog
     syslog(log_level, "%s: %m", msg); // %m zostanie zastąpione przez strerror(errno)
+    // Log do stderr (użyteczne przy debugowaniu bez demona)
+    perror(msg);
     exit(EXIT_FAILURE);
 }
 
@@ -12,18 +14,15 @@ void log_message(int log_level, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
-    // Logowanie do syslog
     vsyslog(log_level, format, args);
     va_end(args);
 
-// Opcjonalnie: logowanie również do stderr, jeśli serwer nie jest w pełni zdaemonizowany
-// lub dla ułatwienia debugowania
-#ifndef DAEMON_MODE // Załóżmy, że DAEMON_MODE będzie zdefiniowane, gdy serwer działa jako demon
+    // Opcjonalnie: logowanie również do stderr, jeśli serwer nie jest w pełni zdaemonizowany
+    // lub dla ułatwienia debugowania. W końcowej wersji można to usunąć.
     va_start(args, format);
     vfprintf(stderr, format, args);
     fprintf(stderr, "\n");
     va_end(args);
-#endif
 }
 
 ssize_t read_n(int fd, void *vptr, size_t n)

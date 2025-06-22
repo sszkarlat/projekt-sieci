@@ -1,22 +1,37 @@
+# Makefile do kompilacji serwera i klienta komunikatora
+
 CC = gcc
-# Zmieniono CFLAGS na bardziej sensowne. -pthread dla wątków.
-CFLAGS = -Wall -g -D_DEFAULT_SOURCE -D_POSIX_C_SOURCE=200809L -lpthread
-LDFLAGS = -pthread # Dodano linkowanie biblioteki wątków
+CFLAGS = -Wall -Wextra -g -pthread
+LDFLAGS = -pthread
 
-SERVER_OBJS = server.o tlv.o user_management.o history_management.o utils.o
-CLIENT_OBJS = client.o tlv.o utils.o
+# Pliki źródłowe
+SERVER_SRCS = server.c utils.c user_management.c history_management.c tlv.c
+CLIENT_SRCS = client.c utils.c tlv.c
 
-all: server client
+# Pliki obiektowe
+SERVER_OBJS = $(SERVER_SRCS:.c=.o)
+CLIENT_OBJS = $(CLIENT_SRCS:.c=.o)
 
-server: $(SERVER_OBJS)
-	$(CC) $(CFLAGS) -o server $(SERVER_OBJS) $(LDFLAGS)
+# Pliki wykonywalne
+SERVER_EXEC = server
+CLIENT_EXEC = client
 
-client: $(CLIENT_OBJS)
-	$(CC) $(CFLAGS) -o client $(CLIENT_OBJS) $(LDFLAGS)
+# Domyślny cel
+all: $(SERVER_EXEC) $(CLIENT_EXEC)
 
-%.o: %.c
+# Reguły budowania
+$(SERVER_EXEC): $(SERVER_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+$(CLIENT_EXEC): $(CLIENT_OBJS)
+	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+
+# Reguła wzorcowa dla plików .o
+%.o: %.c *.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+# Reguła czyszczenia
 clean:
-	rm -f *.o server client users.dat
-	rm -rf chat_history/
+	rm -f $(SERVER_OBJS) $(CLIENT_OBJS) $(SERVER_EXEC) $(CLIENT_EXEC) *~ core
+
+.PHONY: all clean
