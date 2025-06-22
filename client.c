@@ -1,6 +1,7 @@
 #include "common.h"
 #include "utils.h"
 
+
 typedef struct
 {
     int chat_sock;
