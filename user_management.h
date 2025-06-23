@@ -5,7 +5,6 @@
 
 #define USERS_FILE "users.dat"
 
-// Inicjalizacja (np. sprawdzenie, czy plik istnieje)
 void init_user_management();
 
 // Rejestracja użytkownika w pliku tekstowym z hashowanym hasłem
