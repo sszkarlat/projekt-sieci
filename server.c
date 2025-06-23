@@ -223,7 +223,7 @@ void handle_discovery_request(int udp_sock, struct sockaddr_in client_addr)
 
 int main(void)
 {
-    // daemonize(); // Odkomentuj, aby uruchomić jako demon
+    daemonize(); // Odkomentuj, aby uruchomić jako demon
     openlog("KomunikatorSerwer", LOG_PID | LOG_CONS, LOG_DAEMON);
     log_message(LOG_INFO, "Server starting...");
 
