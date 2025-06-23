@@ -1,3 +1,13 @@
+# Zanim zaczniemy
+```
+sudo apt-get update
+```
+Instalacja między innymi openssl
+```
+sudo apt-get install libssl-dev
+```
+
+
 # Opis działania
 
 1. Uruchomienie serwera
