@@ -3,9 +3,23 @@
 ```
 sudo apt-get update
 ```
+
+```
+git clone https://github.com/sszkarlat/projekt-sieci.git 
+```
+
+```
+cd projekt-sieci
+make all
+```
+
 Instalacja między innymi openssl
 ```
 sudo apt-get install libssl-dev
+```
+
+```
+make all
 ```
 
 2. Na Ubuntu
@@ -33,6 +47,9 @@ sudo apt install build-essential
 sudo apt install libssl-dev
 ```
 
+```
+make all
+```
 
 # Opis działania
 
