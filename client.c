@@ -1,11 +1,11 @@
 #include "common.h"
 #include "utils.h"
 
-
 typedef struct
 {
     int chat_sock;
     pthread_mutex_t *print_mutex;
+    char *logged_username;
 } ChatReceiverArgs;
 
 void *chat_receiver_thread(void *arg)
@@ -13,6 +13,7 @@ void *chat_receiver_thread(void *arg)
     ChatReceiverArgs *args = (ChatReceiverArgs *)arg;
     int chat_sock = args->chat_sock;
     pthread_mutex_t *print_mutex = args->print_mutex;
+    char *logged_username = args->logged_username;  
     char buffer[TLV_BUFFER_SIZE];
 
     log_message(LOG_INFO, "Chat receiver thread started.");
@@ -42,9 +43,21 @@ void *chat_receiver_thread(void *arg)
             if (type == MSG_TYPE_REALTIME_CHAT && length == sizeof(MessagePayload))
             {
                 MessagePayload *payload = (MessagePayload *)(buffer + sizeof(TLVHeader));
+                
+                // MODYFIKACJA: Sprawdź czy zalogowany użytkownik jest adresatem
                 pthread_mutex_lock(print_mutex);
-                printf("\n[%s]: %s\n> ", payload->sender, payload->message);
-                fflush(stdout);
+                if (logged_username != NULL && strlen(logged_username) > 0 && 
+                    strcmp(payload->recipient, logged_username) == 0)
+                {
+                    printf("\n[%s]: %s\n> ", payload->sender, payload->message);
+                    fflush(stdout);
+                }
+                else if (logged_username == NULL || strlen(logged_username) == 0)
+                {
+                    // Jeśli nie jesteś zalogowany, nie wyświetlaj wiadomości
+                    printf("\n[INFO]: Otrzymano wiadomość, ale nie jesteś zalogowany.\n> ");
+                    fflush(stdout);
+                }
                 pthread_mutex_unlock(print_mutex);
             }
             else
@@ -61,7 +74,6 @@ void *chat_receiver_thread(void *arg)
     return NULL;
 }
 
-// POPRAWIONA FUNKCJA: Używa poprawnego adresu docelowego dla multicastu
 void discover_server(struct sockaddr_in *server_addr_out)
 {
     int sock_udp;
@@ -82,7 +94,6 @@ void discover_server(struct sockaddr_in *server_addr_out)
     memset(&multicast_addr, 0, sizeof(multicast_addr));
     multicast_addr.sin_family = AF_INET;
     multicast_addr.sin_port = htons(DISCOVERY_UDP_PORT);
-    // POPRAWKA: Ustawienie adresu docelowego na adres grupy multicast
     if (inet_pton(AF_INET, MULTICAST_GROUP_DISCOVERY, &multicast_addr.sin_addr) <= 0)
     {
         perror("discover_server: inet_pton failed for multicast group");
@@ -249,8 +260,15 @@ int main(int argc, char *argv[])
     }
     printf("Joined chat multicast group %s:%d.\n", MULTICAST_GROUP_CHAT, CHAT_UDP_PORT);
 
+    char command_buffer[MAX_MSG_LEN + MAX_USERNAME_LEN * 2 + 20];
+    char username[MAX_USERNAME_LEN] = "";  // MODYFIKACJA: będzie przekazane do wątku
+    int logged_in = 0;
+
+    // MODYFIKACJA: Konfiguracja argumentów dla wątku z nazwą użytkownika
     chat_args.chat_sock = chat_sock_udp;
     chat_args.print_mutex = &print_mutex;
+    chat_args.logged_username = username;  // Przekaż wskaźnik na tablicę username
+    
     if (pthread_create(&chat_thread, NULL, chat_receiver_thread, &chat_args) != 0)
     {
         perror("pthread_create failed for chat_receiver_thread");
@@ -258,10 +276,6 @@ int main(int argc, char *argv[])
         close(sock_tcp);
         return 1;
     }
-
-    char command_buffer[MAX_MSG_LEN + MAX_USERNAME_LEN * 2 + 20];
-    char username[MAX_USERNAME_LEN] = "";
-    int logged_in = 0;
 
     printf("\nWelcome! Commands:\n");
     printf("  register <user> <pass>\n");
@@ -312,6 +326,7 @@ int main(int argc, char *argv[])
                     {
                         logged_in = 1;
                         strncpy(username, user, MAX_USERNAME_LEN);
+                        // username jest teraz aktualizowane i wątek ma dostęp przez wskaźnik
                     }
                 }
             }
