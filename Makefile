@@ -2,7 +2,8 @@
 
 CC = gcc
 CFLAGS = -Wall -Wextra -g -pthread
-LDFLAGS = -pthread
+# Dodajemy flagę -lcrypto do linkera
+LDFLAGS = -pthread -lcrypto
 
 # Pliki źródłowe
 SERVER_SRCS = server.c utils.c user_management.c history_management.c tlv.c
