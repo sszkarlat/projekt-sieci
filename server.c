@@ -37,15 +37,16 @@ void daemonize()
     if (pid > 0) exit(EXIT_SUCCESS);
 
     umask(0);
-    if (chdir("/") < 0) error_exit("daemonize: chdir failed", LOG_ERR);
 
-    close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
-
-    open("/dev/null", O_RDWR);
-    dup(0);
-    dup(0);
+    int nullfd = open("/dev/null", O_RDWR);
+    if (nullfd >= 0) {
+        dup2(nullfd, STDIN_FILENO);
+        dup2(nullfd, STDOUT_FILENO);
+        dup2(nullfd, STDERR_FILENO);
+        if (nullfd > STDERR_FILENO) {
+            close(nullfd);
+        }
+    }
 }
 
 // POPRAWIONA FUNKCJA: Używa sendto() zamiast send_tlv() dla UDP
