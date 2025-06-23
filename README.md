@@ -1,10 +1,36 @@
 # Zanim zaczniemy
+1. Na Kali
 ```
 sudo apt-get update
 ```
 Instalacja między innymi openssl
 ```
 sudo apt-get install libssl-dev
+```
+
+2. Na Ubuntu
+```
+sudo apt update
+```
+
+```
+sudo apt install git
+```
+
+```
+git clone https://github.com/sszkarlat/projekt-sieci.git 
+```
+
+```
+sudo apt install make
+```
+
+```
+sudo apt install build-essential
+```
+
+```
+sudo apt install libssl-dev
 ```
 
 
