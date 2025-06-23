@@ -1,13 +1,13 @@
 #include "user_management.h"
 #include "utils.h"
-#include <openssl/sha.h> // Dołączenie biblioteki do hashowania
+#include <openssl/sha.h> // biblioteka do hashowania
 
-// Długość hasha SHA256 w formie heksadecymalnej (32 bajty * 2 znaki hex) + null
+// Długość hasha SHA256
 #define SHA256_HEX_LEN (SHA256_DIGEST_LENGTH * 2 + 1)
 
 void init_user_management()
 {
-    FILE *fp = fopen(USERS_FILE, "a"); // Utwórz plik tekstowy, jeśli nie istnieje
+    FILE *fp = fopen(USERS_FILE, "a");
     if (fp == NULL)
     {
         log_message(LOG_ERR, "Could not open/create users file '%s': %m", USERS_FILE);
